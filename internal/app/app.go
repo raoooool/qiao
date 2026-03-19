@@ -3,12 +3,13 @@ package app
 import (
 	"qiao/internal/config"
 	"qiao/internal/core"
-	googleprovider "qiao/internal/providers/google"
+	claudeprovider "qiao/internal/providers/claude"
+	codexprovider "qiao/internal/providers/codex"
 	"qiao/internal/providers/registry"
 )
 
 const (
-	defaultProvider = "google"
+	defaultProvider = "codex"
 	defaultSource   = "auto"
 	defaultTarget   = "zh"
 )
@@ -33,7 +34,8 @@ func New(cfg config.Config) *Runtime {
 		registry: registry.New(),
 	}
 
-	r.registry.Register("google", googleprovider.New)
+	r.registry.Register("claude", claudeprovider.New)
+	r.registry.Register("codex", codexprovider.New)
 
 	return r
 }

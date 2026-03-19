@@ -11,8 +11,8 @@ import (
 func TestNewAppliesBuiltInDefaults(t *testing.T) {
 	runtime := New(config.Config{})
 
-	if got := runtime.DefaultProvider(); got != "google" {
-		t.Fatalf("expected default provider google, got %q", got)
+	if got := runtime.DefaultProvider(); got != "codex" {
+		t.Fatalf("expected default provider codex, got %q", got)
 	}
 
 	if got := runtime.DefaultSource(); got != "auto" {
@@ -25,33 +25,23 @@ func TestNewAppliesBuiltInDefaults(t *testing.T) {
 }
 
 func TestResolveProviderUsesConfigAndRegistry(t *testing.T) {
-	runtime := New(config.Config{
-		Providers: map[string]map[string]string{
-			"google": {
-				"project_id": "demo-project",
-				"location":   "global",
-			},
-		},
-	})
+	runtime := New(config.Config{})
 
-	translator, err := runtime.ResolveProvider("google")
+	translator, err := runtime.ResolveProvider("claude")
 	if err != nil {
 		t.Fatalf("resolve provider: %v", err)
 	}
 
-	if got := translator.Name(); got != "google" {
-		t.Fatalf("expected google translator, got %q", got)
+	if got := translator.Name(); got != "claude" {
+		t.Fatalf("expected claude translator, got %q", got)
 	}
 }
 
 func TestLoadReadsConfigFileAndRegistersProviders(t *testing.T) {
 	path := writeConfigFile(t, `
-default_provider: google
+default_provider: claude
 default_source: auto
 default_target: zh
-providers:
-  google:
-    project_id: demo-project
 `)
 
 	runtime, err := Load(path)
@@ -59,8 +49,8 @@ providers:
 		t.Fatalf("load app runtime: %v", err)
 	}
 
-	if got := runtime.ListProviders(); len(got) != 1 || got[0] != "google" {
-		t.Fatalf("expected [google], got %v", got)
+	if got := runtime.ListProviders(); len(got) != 2 || got[0] != "claude" || got[1] != "codex" {
+		t.Fatalf("expected [claude codex], got %v", got)
 	}
 }
 

@@ -1,6 +1,6 @@
 # qiao
 
-`qiao` is a Go command-line translation tool with a provider-oriented architecture. Version 1 ships with Google Cloud Translation Advanced v3 and keeps the CLI surface open for additional providers later.
+`qiao` is a Go command-line translation tool with a provider-oriented architecture. It ships with Codex CLI and Claude Code as LLM-based translation providers.
 
 ## Install
 
@@ -34,7 +34,7 @@ Override languages or provider:
 
 ```bash
 qiao -f en -t zh "How are you?"
-qiao -p google "How are you?"
+qiao -p claude "How are you?"
 ```
 
 Return structured output:
@@ -60,40 +60,22 @@ qiao providers
 Example:
 
 ```yaml
-default_provider: google
+default_provider: codex
 default_source: auto
 default_target: zh
 
 providers:
-  google:
-    project_id: your-gcp-project-id
-    location: global
-    credentials_file: /path/to/service-account.json
+  codex:
+    model: o3
+  claude:
+    model: sonnet
 ```
 
 CLI flags override config defaults for provider, source language, and target language.
 
-## Google Authentication
-
-The Google provider requires a `project_id` in the config file. Authentication uses Google Application Default Credentials.
-
-Supported approaches:
-
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
-```
-
-Or set `providers.google.credentials_file` in `~/.config/qiao/config.yaml`.
-
-If credentials are missing or invalid, `qiao` returns a provider error on `stderr` and exits non-zero.
-
 ## Supported Providers
 
-Currently implemented:
+- `codex` (default) — uses [Codex CLI](https://github.com/openai/codex) via `codex exec`
+- `claude` — uses [Claude Code](https://claude.ai/code) via `claude -p`
 
-- `google`
-
-Planned but not implemented in v1:
-
-- `openai`
-- `deepl`
+Both providers support an optional `model` config field and a `binary` field to override the CLI path.

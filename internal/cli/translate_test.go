@@ -42,6 +42,7 @@ func TestTranslateUsesPositionalInput(t *testing.T) {
 	cmd := newRootCommand(TranslateDependencies{
 		Stdin:           strings.NewReader("ignored stdin"),
 		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
 		ResolveProvider: fixedProviderResolver(translator),
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
@@ -73,6 +74,7 @@ func TestTranslateUsesStdinWhenPositionalInputMissing(t *testing.T) {
 	cmd := newRootCommand(TranslateDependencies{
 		Stdin:           strings.NewReader("How are you?"),
 		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
 		ResolveProvider: fixedProviderResolver(translator),
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
@@ -99,6 +101,7 @@ func TestTranslatePositionalInputWinsOverStdin(t *testing.T) {
 	cmd := newRootCommand(TranslateDependencies{
 		Stdin:           strings.NewReader("stdin text"),
 		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
 		ResolveProvider: fixedProviderResolver(translator),
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
@@ -121,6 +124,7 @@ func TestTranslateRequiresInput(t *testing.T) {
 	cmd := newRootCommand(TranslateDependencies{
 		Stdin:           strings.NewReader("   "),
 		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
 		ResolveProvider: fixedProviderResolver(&fakeTranslator{}),
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
@@ -153,6 +157,7 @@ func TestTranslateJSONOutput(t *testing.T) {
 	cmd := newRootCommand(TranslateDependencies{
 		Stdin:           strings.NewReader(""),
 		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
 		ResolveProvider: fixedProviderResolver(translator),
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
@@ -175,6 +180,115 @@ func TestTranslateJSONOutput(t *testing.T) {
 
 	if got["translation"] != "你好吗？" {
 		t.Fatalf("expected translation in JSON output, got %#v", got["translation"])
+	}
+}
+
+func TestTranslateVerboseOutput(t *testing.T) {
+	translator := &fakeTranslator{
+		response: &core.TranslateResponse{
+			Provider:       "fake",
+			SourceLanguage: "auto",
+			TargetLanguage: "zh",
+			Text:           "hello",
+			Translation:    "你好",
+			Metadata: map[string]any{
+				"command": `fake "exec" "hello"`,
+			},
+		},
+	}
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &stderr,
+		ResolveProvider: fixedProviderResolver(translator),
+		DefaultProvider: "fake",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+	})
+	cmd.SetArgs([]string{"-v", "hello"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("execute command: %v", err)
+	}
+
+	stderrStr := stderr.String()
+	if !strings.Contains(stderrStr, "[qiao]") {
+		t.Fatalf("expected stderr to contain [qiao] prefix, got %q", stderrStr)
+	}
+	if !strings.Contains(stderrStr, `fake "exec" "hello"`) {
+		t.Fatalf("expected stderr to contain command, got %q", stderrStr)
+	}
+	if !strings.Contains(stderrStr, "s)") {
+		t.Fatalf("expected stderr to contain elapsed time, got %q", stderrStr)
+	}
+
+	if stdout.String() != "你好\n" {
+		t.Fatalf("expected stdout to contain translation only, got %q", stdout.String())
+	}
+}
+
+func TestTranslateNoVerboseByDefault(t *testing.T) {
+	translator := &fakeTranslator{
+		response: &core.TranslateResponse{
+			Provider:    "fake",
+			Text:        "hello",
+			Translation: "你好",
+			Metadata: map[string]any{
+				"command": `fake "exec" "hello"`,
+			},
+		},
+	}
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &stderr,
+		ResolveProvider: fixedProviderResolver(translator),
+		DefaultProvider: "fake",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+	})
+	cmd.SetArgs([]string{"hello"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("execute command: %v", err)
+	}
+
+	if stderr.String() != "" {
+		t.Fatalf("expected no stderr output without -v, got %q", stderr.String())
+	}
+}
+
+func TestTranslateVerboseOnError(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:  strings.NewReader(""),
+		Stdout: &stdout,
+		Stderr: &stderr,
+		ResolveProvider: func(string) (core.Translator, error) {
+			return nil, errors.New("provider failed")
+		},
+		DefaultProvider: "fake",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+	})
+	cmd.SetArgs([]string{"-v", "hello"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	stderrStr := stderr.String()
+	if !strings.Contains(stderrStr, "[qiao]") {
+		t.Fatalf("expected stderr to contain [qiao] even on error, got %q", stderrStr)
+	}
+	if !strings.Contains(stderrStr, "s)") {
+		t.Fatalf("expected stderr to contain elapsed time, got %q", stderrStr)
 	}
 }
 
