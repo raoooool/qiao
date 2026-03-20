@@ -19,7 +19,7 @@ func TestProvidersListsRegisteredProviders(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"providers"})
 
 	if err := cmd.Execute(); err != nil {
@@ -44,7 +44,7 @@ func TestProvidersOutputIsStableForShellUse(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"providers"})
 
 	if err := cmd.Execute(); err != nil {

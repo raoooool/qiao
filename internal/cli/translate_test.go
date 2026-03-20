@@ -47,7 +47,7 @@ func TestTranslateUsesPositionalInput(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"How are you?"})
 
 	if err := cmd.Execute(); err != nil {
@@ -79,7 +79,7 @@ func TestTranslateUsesStdinWhenPositionalInputMissing(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("execute command: %v", err)
@@ -106,7 +106,7 @@ func TestTranslatePositionalInputWinsOverStdin(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"positional text"})
 
 	if err := cmd.Execute(); err != nil {
@@ -129,7 +129,7 @@ func TestTranslateRequiresInput(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 
 	err := cmd.Execute()
 	if err == nil {
@@ -162,7 +162,7 @@ func TestTranslateJSONOutput(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"--json", "How are you?"})
 
 	if err := cmd.Execute(); err != nil {
@@ -206,7 +206,7 @@ func TestTranslateVerboseOutput(t *testing.T) {
 		DefaultProvider: "fake",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"-v", "hello"})
 
 	if err := cmd.Execute(); err != nil {
@@ -250,7 +250,7 @@ func TestTranslateNoVerboseByDefault(t *testing.T) {
 		DefaultProvider: "fake",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"hello"})
 
 	if err := cmd.Execute(); err != nil {
@@ -275,7 +275,7 @@ func TestTranslateVerboseOnError(t *testing.T) {
 		DefaultProvider: "fake",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	})
+	}, ConfigDependencies{})
 	cmd.SetArgs([]string{"-v", "hello"})
 
 	err := cmd.Execute()

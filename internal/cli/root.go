@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"qiao/internal/app"
+	"qiao/internal/config"
 	"qiao/internal/core"
 )
 
@@ -22,22 +23,37 @@ type TranslateDependencies struct {
 }
 
 func NewRootCommand() *cobra.Command {
-	return newRootCommand(defaultTranslateDependencies())
+	return newRootCommand(defaultTranslateDependencies(), defaultConfigDependencies())
 }
 
-func newRootCommand(deps TranslateDependencies) *cobra.Command {
+func newRootCommand(deps TranslateDependencies, cfgDeps ConfigDependencies) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "qiao [text]",
 		Short:        "Translate text from the command line",
-		Long:         "qiao is a provider-oriented translation CLI. Supports Codex and Claude Code as providers.",
+		Long: `qiao is a provider-oriented translation CLI.
+
+Supported providers: codex (default), claude, tencent.
+
+Configuration file: ~/.config/qiao/config.yaml
+Use "qiao config" to manage configuration.`,
 		Args:         cobra.ArbitraryArgs,
 		SilenceUsage: true,
 	}
 
 	configureTranslateCommand(cmd, deps)
 	configureProvidersCommand(cmd, deps)
+	configureConfigCommand(cmd, cfgDeps)
 
 	return cmd
+}
+
+func defaultConfigDependencies() ConfigDependencies {
+	configPath, _ := config.DefaultPath()
+	return ConfigDependencies{
+		Stdout:     os.Stdout,
+		Stderr:     os.Stderr,
+		ConfigPath: configPath,
+	}
 }
 
 func defaultTranslateDependencies() TranslateDependencies {
