@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-qiao is a Go CLI translation tool using a provider-oriented architecture. Ships with two LLM-based providers: Codex CLI (default) and Claude Code. Built with cobra for CLI and YAML for config (`~/.config/qiao/config.yaml`).
+qiao is a Go CLI translation tool using a provider-oriented architecture. Ships with three providers: Codex CLI (default), Claude Code, and Tencent Cloud Machine Translation API. Built with cobra for CLI and YAML for config (`~/.config/qiao/config.yaml`).
 
 ## Commands
 
@@ -27,8 +27,9 @@ The codebase follows a layered design:
 - **`internal/providers/registry/`** — Factory-based provider registry. Providers are registered as `Factory func(config.Config) (core.Translator, error)`.
 - **`internal/providers/codex/`** — Codex CLI provider. Shells out to `codex exec` for translation.
 - **`internal/providers/claude/`** — Claude Code provider. Shells out to `claude -p` for translation.
+- **`internal/providers/tencent/`** — Tencent Cloud Machine Translation API provider. Calls `tmt.tencentcloudapi.com` via HTTP with TC3-HMAC-SHA256 signing. Requires `TENCENTCLOUD_SECRET_ID` and `TENCENTCLOUD_SECRET_KEY` env vars (or config in `providers.tencent`).
 
-Both CLI-based providers use a `commandRunner` function type for testability (mock the command execution, not the CLI).
+CLI-based providers use a `commandRunner` function type for testability. The Tencent provider uses an `httpClient` function type following the same pattern.
 
 ## Adding a New Provider
 

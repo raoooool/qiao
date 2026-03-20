@@ -41,10 +41,19 @@ func (p *Provider) Name() string {
 func (p *Provider) Translate(ctx context.Context, req core.TranslateRequest) (*core.TranslateResponse, error) {
 	prompt := buildPrompt(req)
 
-	args := []string{"exec", prompt}
-	if p.model != "" {
-		args = []string{"exec", "-m", p.model, prompt}
+	args := []string{
+		"exec",
+		"--ephemeral",
+		"--skip-git-repo-check",
+		"--disable", "memories",
+		"--disable", "plugins",
+		"--disable", "personality",
+		"--disable", "shell_snapshot",
 	}
+	if p.model != "" {
+		args = append(args, "-m", p.model)
+	}
+	args = append(args, prompt)
 
 	output, err := p.runCmd(ctx, p.binary, args...)
 	if err != nil {

@@ -49,8 +49,8 @@ default_target: zh
 		t.Fatalf("load app runtime: %v", err)
 	}
 
-	if got := runtime.ListProviders(); len(got) != 2 || got[0] != "claude" || got[1] != "codex" {
-		t.Fatalf("expected [claude codex], got %v", got)
+	if got := runtime.ListProviders(); len(got) != 3 || got[0] != "claude" || got[1] != "codex" || got[2] != "tencent" {
+		t.Fatalf("expected [claude codex tencent], got %v", got)
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"qiao/internal/core"
 	claudeprovider "qiao/internal/providers/claude"
 	codexprovider "qiao/internal/providers/codex"
+	tencentprovider "qiao/internal/providers/tencent"
 	"qiao/internal/providers/registry"
 )
 
@@ -36,6 +37,7 @@ func New(cfg config.Config) *Runtime {
 
 	r.registry.Register("claude", claudeprovider.New)
 	r.registry.Register("codex", codexprovider.New)
+	r.registry.Register("tencent", tencentprovider.New)
 
 	return r
 }
