@@ -5,12 +5,11 @@ import (
 	"qiao/internal/core"
 	claudeprovider "qiao/internal/providers/claude"
 	codexprovider "qiao/internal/providers/codex"
-	tencentprovider "qiao/internal/providers/tencent"
 	"qiao/internal/providers/registry"
+	tencentprovider "qiao/internal/providers/tencent"
 )
 
 const (
-	defaultProvider = "codex"
 	defaultSource   = "auto"
 	defaultTarget   = "zh"
 )
@@ -35,19 +34,15 @@ func New(cfg config.Config) *Runtime {
 		registry: registry.New(),
 	}
 
-	r.registry.Register("claude", claudeprovider.New)
-	r.registry.Register("codex", codexprovider.New)
-	r.registry.Register("tencent", tencentprovider.New)
+	r.registry.Register("claude", claudeprovider.New, claudeprovider.ConfigFields)
+	r.registry.Register("codex", codexprovider.New, codexprovider.ConfigFields)
+	r.registry.Register("tencent", tencentprovider.New, tencentprovider.ConfigFields)
 
 	return r
 }
 
 func (r *Runtime) DefaultProvider() string {
-	if r.config.DefaultProvider != "" {
-		return r.config.DefaultProvider
-	}
-
-	return defaultProvider
+	return r.config.DefaultProvider
 }
 
 func (r *Runtime) DefaultSource() string {
@@ -72,4 +67,8 @@ func (r *Runtime) ResolveProvider(name string) (core.Translator, error) {
 
 func (r *Runtime) ListProviders() []string {
 	return r.registry.Providers()
+}
+
+func (r *Runtime) ProviderConfigFields(name string) []core.ConfigField {
+	return r.registry.ConfigFields(name)
 }

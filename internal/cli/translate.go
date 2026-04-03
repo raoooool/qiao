@@ -29,6 +29,12 @@ func configureTranslateCommand(cmd *cobra.Command, deps TranslateDependencies) {
 			return cmd.Help()
 		}
 
+		// Require init unless --provider is explicitly set.
+		if !cmd.Flags().Changed("provider") && deps.FileExists != nil && !deps.FileExists(deps.ConfigPath) {
+			fmt.Fprintln(deps.Stderr, "Tip: Run \"qiao init\" to set up your provider.")
+			return errors.New("not initialized")
+		}
+
 		text, err := resolveInput(args, deps.Stdin)
 		if err != nil {
 			return err
@@ -37,6 +43,9 @@ func configureTranslateCommand(cmd *cobra.Command, deps TranslateDependencies) {
 		providerName := provider
 		if providerName == "" {
 			providerName = deps.DefaultProvider
+		}
+		if providerName == "" {
+			return fmt.Errorf("%w: run \"qiao init\" or use --provider", errProviderResolutionNotConfigured)
 		}
 
 		sourceLanguage := from

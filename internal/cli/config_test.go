@@ -22,7 +22,7 @@ func newConfigTestDeps(t *testing.T) (ConfigDependencies, string) {
 func TestConfigSet_TopLevel(t *testing.T) {
 	deps, path := newConfigTestDeps(t)
 
-	cmd := newRootCommand(defaultTestTranslateDeps(), deps)
+	cmd := newRootCommand(defaultTestTranslateDeps(), deps, InitDependencies{})
 	cmd.SetArgs([]string{"config", "set", "default_provider", "tencent"})
 
 	if err := cmd.Execute(); err != nil {
@@ -41,7 +41,7 @@ func TestConfigSet_TopLevel(t *testing.T) {
 		Stderr:     &bytes.Buffer{},
 		ConfigPath: path,
 	}
-	cmd2 := newRootCommand(defaultTestTranslateDeps(), deps2)
+	cmd2 := newRootCommand(defaultTestTranslateDeps(), deps2, InitDependencies{})
 	cmd2.SetArgs([]string{"config", "get", "default_provider"})
 
 	if err := cmd2.Execute(); err != nil {
@@ -55,7 +55,7 @@ func TestConfigSet_TopLevel(t *testing.T) {
 func TestConfigGet_NotFound(t *testing.T) {
 	deps, _ := newConfigTestDeps(t)
 
-	cmd := newRootCommand(defaultTestTranslateDeps(), deps)
+	cmd := newRootCommand(defaultTestTranslateDeps(), deps, InitDependencies{})
 	cmd.SetArgs([]string{"config", "get", "default_provider"})
 
 	err := cmd.Execute()
@@ -73,7 +73,7 @@ func TestConfigList_ShowsAllConfig(t *testing.T) {
 		t.Fatalf("write: %v", err)
 	}
 
-	cmd := newRootCommand(defaultTestTranslateDeps(), deps)
+	cmd := newRootCommand(defaultTestTranslateDeps(), deps, InitDependencies{})
 	cmd.SetArgs([]string{"config", "list"})
 
 	if err := cmd.Execute(); err != nil {
@@ -97,7 +97,7 @@ func TestConfigDelete_RemovesKey(t *testing.T) {
 		t.Fatalf("write: %v", err)
 	}
 
-	cmd := newRootCommand(defaultTestTranslateDeps(), deps)
+	cmd := newRootCommand(defaultTestTranslateDeps(), deps, InitDependencies{})
 	cmd.SetArgs([]string{"config", "delete", "default_provider"})
 
 	if err := cmd.Execute(); err != nil {
@@ -110,7 +110,7 @@ func TestConfigDelete_RemovesKey(t *testing.T) {
 		Stderr:     &bytes.Buffer{},
 		ConfigPath: path,
 	}
-	cmd2 := newRootCommand(defaultTestTranslateDeps(), deps2)
+	cmd2 := newRootCommand(defaultTestTranslateDeps(), deps2, InitDependencies{})
 	cmd2.SetArgs([]string{"config", "get", "default_provider"})
 
 	if err := cmd2.Execute(); err == nil {
@@ -121,7 +121,7 @@ func TestConfigDelete_RemovesKey(t *testing.T) {
 func TestConfigDelete_NotFound(t *testing.T) {
 	deps, _ := newConfigTestDeps(t)
 
-	cmd := newRootCommand(defaultTestTranslateDeps(), deps)
+	cmd := newRootCommand(defaultTestTranslateDeps(), deps, InitDependencies{})
 	cmd.SetArgs([]string{"config", "delete", "default_provider"})
 
 	err := cmd.Execute()
@@ -140,5 +140,6 @@ func defaultTestTranslateDeps() TranslateDependencies {
 		DefaultProvider: "codex",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
+		FileExists:      func(string) bool { return true },
 	}
 }

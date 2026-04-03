@@ -24,3 +24,11 @@ type Translator interface {
 	Name() string
 	Translate(ctx context.Context, req TranslateRequest) (*TranslateResponse, error)
 }
+
+// ConfigField describes a provider configuration field for interactive setup.
+type ConfigField struct {
+	Key      string
+	Label    string
+	Required bool
+	Secret   bool
+}

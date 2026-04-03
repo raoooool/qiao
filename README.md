@@ -1,6 +1,6 @@
 # qiao
 
-`qiao` is a Go command-line translation tool with a provider-oriented architecture. It ships with three translation providers: Codex CLI (default), Claude Code, and Tencent Cloud Machine Translation API.
+`qiao` is a Go command-line translation tool with a provider-oriented architecture. It ships with three translation providers: Codex CLI, Claude Code, and Tencent Cloud Machine Translation API.
 
 ## Install
 
@@ -55,13 +55,19 @@ List available providers:
 qiao providers
 ```
 
+Initialize provider configuration:
+
+```bash
+qiao init
+```
+
 ### CLI Flags
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--from` | `-f` | Source language | `auto` |
 | `--to` | `-t` | Target language | `zh` |
-| `--provider` | `-p` | Translation provider | `codex` |
+| `--provider` | `-p` | Translation provider | *(configured by `qiao init`)* |
 | `--json` | | Output structured JSON | `false` |
 | `--verbose` | `-v` | Show executed command and elapsed time | `false` |
 
@@ -88,7 +94,7 @@ qiao config delete <key>         # Delete a value
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `default_provider` | Default translation provider | `codex` |
+| `default_provider` | Translation provider used when `--provider` is omitted | Example: `codex` |
 | `default_source` | Default source language | `auto` |
 | `default_target` | Default target language | `zh` |
 
@@ -142,7 +148,7 @@ CLI flags override config file values for provider, source language, and target 
 
 | Provider | Description | Requirements |
 |----------|-------------|-------------|
-| `codex` (default) | Uses [Codex CLI](https://github.com/openai/codex) via `codex exec` | `codex` binary in PATH |
+| `codex` | Uses [Codex CLI](https://github.com/openai/codex) via `codex exec` | `codex` binary in PATH |
 | `claude` | Uses [Claude Code](https://claude.ai/code) via `claude -p` | `claude` binary in PATH |
 | `tencent` | Uses [Tencent Cloud Machine Translation API](https://cloud.tencent.com/product/tmt) | API credentials (env vars or config) |
 

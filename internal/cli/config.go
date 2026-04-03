@@ -24,7 +24,7 @@ func configureConfigCommand(root *cobra.Command, deps ConfigDependencies) {
 		Long: `Manage configuration stored in ~/.config/qiao/config.yaml.
 
 Top-level keys:
-  default_provider    Default translation provider (codex, claude, tencent)
+  default_provider    Translation provider used when --provider is omitted (codex, claude, tencent)
   default_source      Default source language (default: auto)
   default_target      Default target language (default: zh)
 

@@ -10,36 +10,53 @@ import (
 
 type Factory func(config.Config) (core.Translator, error)
 
+type providerInfo struct {
+	factory      Factory
+	configFields []core.ConfigField
+}
+
 type Registry struct {
-	factories map[string]Factory
+	providers map[string]providerInfo
 }
 
 func New() *Registry {
 	return &Registry{
-		factories: map[string]Factory{},
+		providers: map[string]providerInfo{},
 	}
 }
 
-func (r *Registry) Register(name string, factory Factory) {
-	r.factories[name] = factory
+func (r *Registry) Register(name string, factory Factory, fields []core.ConfigField) {
+	r.providers[name] = providerInfo{
+		factory:      factory,
+		configFields: fields,
+	}
 }
 
 func (r *Registry) Resolve(name string, cfg config.Config) (core.Translator, error) {
-	factory, ok := r.factories[name]
+	info, ok := r.providers[name]
 	if !ok {
 		return nil, fmt.Errorf("unknown provider %q", name)
 	}
 
-	return factory(cfg)
+	return info.factory(cfg)
 }
 
 func (r *Registry) Providers() []string {
-	providers := make([]string, 0, len(r.factories))
-	for name := range r.factories {
+	providers := make([]string, 0, len(r.providers))
+	for name := range r.providers {
 		providers = append(providers, name)
 	}
 
 	slices.Sort(providers)
 
 	return providers
+}
+
+func (r *Registry) ConfigFields(name string) []core.ConfigField {
+	info, ok := r.providers[name]
+	if !ok {
+		return nil
+	}
+
+	return info.configFields
 }

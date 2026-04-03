@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-qiao is a Go CLI translation tool using a provider-oriented architecture. Ships with three providers: Codex CLI (default), Claude Code, and Tencent Cloud Machine Translation API. Built with cobra for CLI and YAML for config (`~/.config/qiao/config.yaml`).
+qiao is a Go CLI translation tool using a provider-oriented architecture. Ships with three providers: Codex CLI, Claude Code, and Tencent Cloud Machine Translation API. Built with cobra for CLI and YAML for config (`~/.config/qiao/config.yaml`).
 
 ## Commands
 

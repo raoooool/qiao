@@ -25,7 +25,7 @@ func TestRegisterAndResolveProvider(t *testing.T) {
 
 	r.Register("google", func(config.Config) (core.Translator, error) {
 		return testTranslator{name: "google"}, nil
-	})
+	}, nil)
 
 	translator, err := r.Resolve("google", config.Config{})
 	if err != nil {
@@ -56,13 +56,13 @@ func TestProvidersReturnsStableOrder(t *testing.T) {
 
 	r.Register("openai", func(config.Config) (core.Translator, error) {
 		return testTranslator{name: "openai"}, nil
-	})
+	}, nil)
 	r.Register("google", func(config.Config) (core.Translator, error) {
 		return testTranslator{name: "google"}, nil
-	})
+	}, nil)
 	r.Register("deepl", func(config.Config) (core.Translator, error) {
 		return testTranslator{name: "deepl"}, nil
-	})
+	}, nil)
 
 	got := r.Providers()
 	want := []string{"deepl", "google", "openai"}
@@ -75,5 +75,33 @@ func TestProvidersReturnsStableOrder(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("expected providers %v, got %v", want, got)
 		}
+	}
+}
+
+func TestConfigFieldsReturnsRegisteredFields(t *testing.T) {
+	r := New()
+
+	fields := []core.ConfigField{
+		{Key: "api_key", Label: "API Key", Required: true, Secret: true},
+	}
+
+	r.Register("test", func(config.Config) (core.Translator, error) {
+		return testTranslator{name: "test"}, nil
+	}, fields)
+
+	got := r.ConfigFields("test")
+	if len(got) != 1 {
+		t.Fatalf("expected 1 config field, got %d", len(got))
+	}
+	if got[0].Key != "api_key" {
+		t.Fatalf("expected key api_key, got %q", got[0].Key)
+	}
+}
+
+func TestConfigFieldsReturnsNilForUnknownProvider(t *testing.T) {
+	r := New()
+	got := r.ConfigFields("missing")
+	if got != nil {
+		t.Fatalf("expected nil, got %v", got)
 	}
 }

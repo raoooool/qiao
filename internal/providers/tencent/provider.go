@@ -18,6 +18,12 @@ import (
 	"qiao/internal/core"
 )
 
+// ConfigFields declares the configuration fields for the tencent provider.
+var ConfigFields = []core.ConfigField{
+	{Key: "secret_id", Label: "Secret ID", Required: true, Secret: true},
+	{Key: "secret_key", Label: "Secret Key", Required: true, Secret: true},
+}
+
 type httpClient func(req *http.Request) (*http.Response, error)
 
 type Provider struct {

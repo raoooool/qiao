@@ -47,7 +47,7 @@ func TestTranslateUsesPositionalInput(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 	cmd.SetArgs([]string{"How are you?"})
 
 	if err := cmd.Execute(); err != nil {
@@ -79,7 +79,7 @@ func TestTranslateUsesStdinWhenPositionalInputMissing(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("execute command: %v", err)
@@ -106,7 +106,7 @@ func TestTranslatePositionalInputWinsOverStdin(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 	cmd.SetArgs([]string{"positional text"})
 
 	if err := cmd.Execute(); err != nil {
@@ -129,7 +129,7 @@ func TestTranslateRequiresInput(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 
 	err := cmd.Execute()
 	if err == nil {
@@ -162,7 +162,7 @@ func TestTranslateJSONOutput(t *testing.T) {
 		DefaultProvider: "google",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 	cmd.SetArgs([]string{"--json", "How are you?"})
 
 	if err := cmd.Execute(); err != nil {
@@ -206,7 +206,7 @@ func TestTranslateVerboseOutput(t *testing.T) {
 		DefaultProvider: "fake",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 	cmd.SetArgs([]string{"-v", "hello"})
 
 	if err := cmd.Execute(); err != nil {
@@ -250,7 +250,7 @@ func TestTranslateNoVerboseByDefault(t *testing.T) {
 		DefaultProvider: "fake",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 	cmd.SetArgs([]string{"hello"})
 
 	if err := cmd.Execute(); err != nil {
@@ -275,7 +275,7 @@ func TestTranslateVerboseOnError(t *testing.T) {
 		DefaultProvider: "fake",
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
-	}, ConfigDependencies{})
+	}, ConfigDependencies{}, InitDependencies{})
 	cmd.SetArgs([]string{"-v", "hello"})
 
 	err := cmd.Execute()
@@ -298,5 +298,109 @@ func fixedProviderResolver(translator core.Translator) func(string) (core.Transl
 			return nil, errors.New("translator is not configured")
 		}
 		return translator, nil
+	}
+}
+
+func TestTranslateExitsWhenNotInitialized(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &stderr,
+		ResolveProvider: fixedProviderResolver(&fakeTranslator{}),
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		ConfigPath:      "/nonexistent/path/config.yaml",
+		FileExists:      func(string) bool { return false },
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"hello"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error when not initialized")
+	}
+
+	if !strings.Contains(stderr.String(), "qiao init") {
+		t.Fatalf("expected init hint in stderr, got %q", stderr.String())
+	}
+}
+
+func TestTranslateSkipsCheckWhenProviderFlagSet(t *testing.T) {
+	translator := &fakeTranslator{}
+	var stdout bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
+		ResolveProvider: fixedProviderResolver(translator),
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		ConfigPath:      "/nonexistent/path/config.yaml",
+		FileExists:      func(string) bool { return false },
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"--provider", "codex", "hello"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("expected success with explicit --provider, got: %v", err)
+	}
+
+	if !strings.Contains(stdout.String(), "translated:hello") {
+		t.Fatalf("expected translation output, got %q", stdout.String())
+	}
+}
+
+func TestTranslateProceedsWhenInitialized(t *testing.T) {
+	translator := &fakeTranslator{}
+	var stdout bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
+		ResolveProvider: fixedProviderResolver(translator),
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		ConfigPath:      "/some/path/config.yaml",
+		FileExists:      func(string) bool { return true },
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"hello"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("expected success when initialized, got: %v", err)
+	}
+
+	if !strings.Contains(stdout.String(), "translated:hello") {
+		t.Fatalf("expected translation output, got %q", stdout.String())
+	}
+}
+
+func TestTranslateFailsWhenProviderIsNotConfigured(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &stderr,
+		ResolveProvider: fixedProviderResolver(&fakeTranslator{}),
+		DefaultProvider: "",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		ConfigPath:      "/some/path/config.yaml",
+		FileExists:      func(string) bool { return true },
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"hello"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error when provider is not configured")
+	}
+
+	if !errors.Is(err, errProviderResolutionNotConfigured) {
+		t.Fatalf("expected provider not configured error, got %v", err)
 	}
 }

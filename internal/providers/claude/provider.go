@@ -11,6 +11,9 @@ import (
 	"qiao/internal/core"
 )
 
+// ConfigFields declares the configuration fields for the claude provider.
+var ConfigFields []core.ConfigField
+
 type commandRunner func(ctx context.Context, name string, args ...string) ([]byte, error)
 
 type Provider struct {
