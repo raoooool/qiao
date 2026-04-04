@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"slices"
 
-	"qiao/internal/config"
-	"qiao/internal/core"
+	"github.com/raoooool/qiao/internal/config"
+	"github.com/raoooool/qiao/internal/core"
 )
 
 type Factory func(config.Config) (core.Translator, error)

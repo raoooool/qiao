@@ -1,4 +1,4 @@
-module qiao
+module github.com/raoooool/qiao
 
 go 1.26.1
 

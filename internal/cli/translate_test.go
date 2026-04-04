@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"qiao/internal/core"
+	"github.com/raoooool/qiao/internal/core"
 )
 
 type fakeTranslator struct {

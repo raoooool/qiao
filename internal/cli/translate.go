@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"qiao/internal/core"
+	"github.com/raoooool/qiao/internal/core"
 )
 
 var errProviderResolutionNotConfigured = errors.New("provider resolution is not configured")

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"qiao/internal/config"
-	"qiao/internal/core"
+	"github.com/raoooool/qiao/internal/config"
+	"github.com/raoooool/qiao/internal/core"
 )
 
 func fakeRunner(output string, err error) commandRunner {

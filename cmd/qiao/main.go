@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"qiao/internal/cli"
+	"github.com/raoooool/qiao/internal/cli"
 )
 
 func main() {

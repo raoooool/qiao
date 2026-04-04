@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"qiao/internal/config"
+	"github.com/raoooool/qiao/internal/config"
 )
 
 type ConfigDependencies struct {

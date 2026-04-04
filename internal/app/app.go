@@ -1,17 +1,17 @@
 package app
 
 import (
-	"qiao/internal/config"
-	"qiao/internal/core"
-	claudeprovider "qiao/internal/providers/claude"
-	codexprovider "qiao/internal/providers/codex"
-	"qiao/internal/providers/registry"
-	tencentprovider "qiao/internal/providers/tencent"
+	"github.com/raoooool/qiao/internal/config"
+	"github.com/raoooool/qiao/internal/core"
+	claudeprovider "github.com/raoooool/qiao/internal/providers/claude"
+	codexprovider "github.com/raoooool/qiao/internal/providers/codex"
+	"github.com/raoooool/qiao/internal/providers/registry"
+	tencentprovider "github.com/raoooool/qiao/internal/providers/tencent"
 )
 
 const (
-	defaultSource   = "auto"
-	defaultTarget   = "zh"
+	defaultSource = "auto"
+	defaultTarget = "zh"
 )
 
 type Runtime struct {

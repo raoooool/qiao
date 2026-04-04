@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"qiao/internal/config"
+	"github.com/raoooool/qiao/internal/config"
 )
 
 func TestNewDoesNotApplyBuiltInProviderFallback(t *testing.T) {

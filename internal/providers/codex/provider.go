@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"strings"
 
-	"qiao/internal/config"
-	"qiao/internal/core"
+	"github.com/raoooool/qiao/internal/config"
+	"github.com/raoooool/qiao/internal/core"
 )
 
 // ConfigFields declares the configuration fields for the codex provider.
