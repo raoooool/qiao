@@ -96,12 +96,19 @@ func configureTranslateCommand(cmd *cobra.Command, deps TranslateDependencies) {
 		}
 
 		if jsonOutput {
-			return json.NewEncoder(deps.Stdout).Encode(resp)
+			if err := json.NewEncoder(deps.Stdout).Encode(resp); err != nil {
+				return err
+			}
+			triggerUpdateCheck(deps)
+			return nil
 		}
 
-		_, err = fmt.Fprintln(deps.Stdout, resp.Translation)
+		if _, err = fmt.Fprintln(deps.Stdout, resp.Translation); err != nil {
+			return err
+		}
 
-		return err
+		triggerUpdateCheck(deps)
+		return nil
 	}
 
 	cmd.Flags().StringVarP(&from, "from", "f", "", "source language")
@@ -152,4 +159,19 @@ func isTerminal(r io.Reader) bool {
 
 func translate(ctx context.Context, translator core.Translator, req core.TranslateRequest) (*core.TranslateResponse, error) {
 	return translator.Translate(ctx, req)
+}
+
+func triggerUpdateCheck(deps TranslateDependencies) {
+	if deps.CheckForUpdate == nil {
+		return
+	}
+
+	runAsync := deps.RunAsync
+	if runAsync == nil {
+		runAsync = defaultRunAsync
+	}
+
+	runAsync(func() {
+		deps.CheckForUpdate(deps.Stderr)
+	})
 }

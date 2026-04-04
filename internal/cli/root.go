@@ -1,9 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
@@ -11,7 +14,14 @@ import (
 	"github.com/raoooool/qiao/internal/app"
 	"github.com/raoooool/qiao/internal/config"
 	"github.com/raoooool/qiao/internal/core"
+	"github.com/raoooool/qiao/internal/update"
 )
+
+var buildVersion = "dev"
+
+func SetVersion(version string) {
+	buildVersion = version
+}
 
 type TranslateDependencies struct {
 	Stdin           io.Reader
@@ -24,13 +34,31 @@ type TranslateDependencies struct {
 	DefaultTarget   string
 	ConfigPath      string
 	FileExists      func(string) bool
+	RunAsync        func(func())
+	CheckForUpdate  func(io.Writer)
+}
+
+type UpgradeDependencies struct {
+	Stdout  io.Writer
+	Stderr  io.Writer
+	Upgrade func(context.Context, string) (update.UpgradeResult, error)
 }
 
 func NewRootCommand() *cobra.Command {
-	return newRootCommand(defaultTranslateDependencies(), defaultConfigDependencies(), defaultInitDependencies())
+	return newRootCommand(
+		defaultTranslateDependencies(buildVersion),
+		defaultConfigDependencies(),
+		defaultInitDependencies(),
+		defaultUpgradeDependencies(buildVersion),
+	)
 }
 
-func newRootCommand(deps TranslateDependencies, cfgDeps ConfigDependencies, initDeps InitDependencies) *cobra.Command {
+func newRootCommand(deps TranslateDependencies, cfgDeps ConfigDependencies, initDeps InitDependencies, upgradeDeps ...UpgradeDependencies) *cobra.Command {
+	var resolvedUpgradeDeps UpgradeDependencies
+	if len(upgradeDeps) > 0 {
+		resolvedUpgradeDeps = upgradeDeps[0]
+	}
+
 	cmd := &cobra.Command{
 		Use:   "qiao [text]",
 		Short: "Translate text from the command line",
@@ -48,6 +76,7 @@ Use "qiao config" to manage configuration.`,
 	configureProvidersCommand(cmd, deps)
 	configureConfigCommand(cmd, cfgDeps)
 	configureInitCommand(cmd, initDeps)
+	configureUpgradeCommand(cmd, resolvedUpgradeDeps)
 
 	return cmd
 }
@@ -61,9 +90,10 @@ func defaultConfigDependencies() ConfigDependencies {
 	}
 }
 
-func defaultTranslateDependencies() TranslateDependencies {
+func defaultTranslateDependencies(version string) TranslateDependencies {
 	configPath, _ := config.DefaultPath()
 	runtime, err := app.Load("")
+	updateService := defaultUpdateService(version)
 	if err != nil {
 		return TranslateDependencies{
 			Stdin:  os.Stdin,
@@ -83,6 +113,7 @@ func defaultTranslateDependencies() TranslateDependencies {
 				_, err := os.Stat(path)
 				return err == nil
 			},
+			RunAsync: defaultRunAsync,
 		}
 	}
 
@@ -103,6 +134,28 @@ func defaultTranslateDependencies() TranslateDependencies {
 		FileExists: func(path string) bool {
 			_, err := os.Stat(path)
 			return err == nil
+		},
+		RunAsync: defaultRunAsync,
+		CheckForUpdate: func(stderr io.Writer) {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+
+			result, err := updateService.Check(ctx)
+			if err != nil || !result.HasUpdate {
+				return
+			}
+			fmt.Fprintf(stderr, "New version available: %s. Run: qiao upgrade\n", result.LatestVersion)
+		},
+	}
+}
+
+func defaultUpgradeDependencies(version string) UpgradeDependencies {
+	service := defaultUpdateService(version)
+	return UpgradeDependencies{
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Upgrade: func(ctx context.Context, targetVersion string) (update.UpgradeResult, error) {
+			return service.Upgrade(ctx, targetVersion)
 		},
 	}
 }
@@ -129,4 +182,18 @@ func defaultReadSecret() (string, error) {
 		return "", err
 	}
 	return string(password), nil
+}
+
+func defaultUpdateService(version string) update.Service {
+	cachePath, _ := update.DefaultCachePath()
+	return update.Service{
+		Version:   version,
+		Repo:      "raoooool/qiao",
+		CachePath: cachePath,
+		Client:    &http.Client{Timeout: 15 * time.Second},
+	}
+}
+
+func defaultRunAsync(fn func()) {
+	go fn()
 }

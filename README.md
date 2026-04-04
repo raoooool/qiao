@@ -22,6 +22,13 @@ Install from source with Go:
 go install github.com/raoooool/qiao/cmd/qiao@latest
 ```
 
+Upgrade an existing `qiao` binary in place:
+
+```bash
+qiao upgrade
+qiao upgrade --version v0.1.0
+```
+
 Build and run locally:
 
 ```bash
@@ -51,6 +58,12 @@ Override languages or provider:
 ```bash
 qiao -f en -t zh "How are you?"
 qiao -p claude "How are you?"
+```
+
+If a newer release is available, `qiao` checks once per day in the background after a successful translation and prints:
+
+```text
+New version available: v0.2.0. Run: qiao upgrade
 ```
 
 Return structured output:
@@ -214,6 +227,13 @@ curl -fsSL https://raw.githubusercontent.com/raoooool/qiao/main/install.sh | VER
 go install github.com/raoooool/qiao/cmd/qiao@latest
 ```
 
+原地升级已经安装的 `qiao` 二进制：
+
+```bash
+qiao upgrade
+qiao upgrade --version v0.1.0
+```
+
 在本地构建并运行：
 
 ```bash
@@ -243,6 +263,12 @@ printf 'How are you?' | qiao
 ```bash
 qiao -f en -t zh "How are you?"
 qiao -p claude "How are you?"
+```
+
+如果有新版本可用，`qiao` 会在一次成功翻译后于后台每天最多检查一次，并输出：
+
+```text
+New version available: v0.2.0. Run: qiao upgrade
 ```
 
 返回结构化输出：

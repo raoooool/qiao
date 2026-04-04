@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"strings"
 	"testing"
 
 	"github.com/raoooool/qiao/internal/core"
+	"github.com/raoooool/qiao/internal/update"
 )
 
 type fakeTranslator struct {
@@ -402,5 +404,72 @@ func TestTranslateFailsWhenProviderIsNotConfigured(t *testing.T) {
 
 	if !errors.Is(err, errProviderResolutionNotConfigured) {
 		t.Fatalf("expected provider not configured error, got %v", err)
+	}
+}
+
+func TestTranslatePrintsUpdateNoticeAfterSuccess(t *testing.T) {
+	translator := &fakeTranslator{}
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &stderr,
+		ResolveProvider: fixedProviderResolver(translator),
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		RunAsync: func(fn func()) {
+			fn()
+		},
+		CheckForUpdate: func(w io.Writer) {
+			result := update.CheckResult{HasUpdate: true, LatestVersion: "v1.2.0"}
+			if result.HasUpdate {
+				_, _ = io.WriteString(w, "New version available: v1.2.0. Run: qiao upgrade\n")
+			}
+		},
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"hello"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("execute: %v", err)
+	}
+
+	if got := stdout.String(); got != "translated:hello\n" {
+		t.Fatalf("unexpected stdout %q", got)
+	}
+	if got := stderr.String(); !strings.Contains(got, "New version available: v1.2.0") {
+		t.Fatalf("expected update notice, got %q", got)
+	}
+}
+
+func TestTranslateDoesNotCheckForUpdatesOnFailure(t *testing.T) {
+	var checks int
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:  strings.NewReader(""),
+		Stdout: &bytes.Buffer{},
+		Stderr: &bytes.Buffer{},
+		ResolveProvider: func(string) (core.Translator, error) {
+			return nil, errors.New("provider failed")
+		},
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		RunAsync: func(fn func()) {
+			fn()
+		},
+		CheckForUpdate: func(io.Writer) {
+			checks++
+		},
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"hello"})
+
+	err := cmd.Execute()
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if checks != 0 {
+		t.Fatalf("expected no update checks on failure, got %d", checks)
 	}
 }
