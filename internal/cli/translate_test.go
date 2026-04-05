@@ -185,6 +185,70 @@ func TestTranslateJSONOutput(t *testing.T) {
 	}
 }
 
+func TestVersionFlagPrintsBuildVersion(t *testing.T) {
+	SetVersion("v1.2.3")
+	t.Cleanup(func() {
+		SetVersion("dev")
+	})
+
+	var stdout, stderr bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &stderr,
+		ResolveProvider: fixedProviderResolver(&fakeTranslator{}),
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		ConfigPath:      "/nonexistent/path/config.yaml",
+		FileExists:      func(string) bool { return false },
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"-v"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("execute command: %v", err)
+	}
+
+	if got := stdout.String(); got != "v1.2.3\n" {
+		t.Fatalf("expected version output, got %q", got)
+	}
+
+	if got := stderr.String(); got != "" {
+		t.Fatalf("expected no stderr output, got %q", got)
+	}
+}
+
+func TestLongVersionFlagPrintsBuildVersion(t *testing.T) {
+	SetVersion("v1.2.3")
+	t.Cleanup(func() {
+		SetVersion("dev")
+	})
+
+	var stdout bytes.Buffer
+
+	cmd := newRootCommand(TranslateDependencies{
+		Stdin:           strings.NewReader(""),
+		Stdout:          &stdout,
+		Stderr:          &bytes.Buffer{},
+		ResolveProvider: fixedProviderResolver(&fakeTranslator{}),
+		DefaultProvider: "codex",
+		DefaultSource:   "auto",
+		DefaultTarget:   "zh",
+		ConfigPath:      "/nonexistent/path/config.yaml",
+		FileExists:      func(string) bool { return false },
+	}, ConfigDependencies{}, InitDependencies{})
+	cmd.SetArgs([]string{"--version"})
+
+	if err := cmd.Execute(); err != nil {
+		t.Fatalf("execute command: %v", err)
+	}
+
+	if got := stdout.String(); got != "v1.2.3\n" {
+		t.Fatalf("expected version output, got %q", got)
+	}
+}
+
 func TestTranslateVerboseOutput(t *testing.T) {
 	translator := &fakeTranslator{
 		response: &core.TranslateResponse{
@@ -209,7 +273,7 @@ func TestTranslateVerboseOutput(t *testing.T) {
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
 	}, ConfigDependencies{}, InitDependencies{})
-	cmd.SetArgs([]string{"-v", "hello"})
+	cmd.SetArgs([]string{"-V", "hello"})
 
 	if err := cmd.Execute(); err != nil {
 		t.Fatalf("execute command: %v", err)
@@ -278,7 +342,7 @@ func TestTranslateVerboseOnError(t *testing.T) {
 		DefaultSource:   "auto",
 		DefaultTarget:   "zh",
 	}, ConfigDependencies{}, InitDependencies{})
-	cmd.SetArgs([]string{"-v", "hello"})
+	cmd.SetArgs([]string{"-V", "hello"})
 
 	err := cmd.Execute()
 	if err == nil {

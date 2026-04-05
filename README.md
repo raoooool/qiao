@@ -29,6 +29,13 @@ qiao upgrade
 qiao upgrade --version v0.1.0
 ```
 
+Show the installed `qiao` version:
+
+```bash
+qiao -v
+qiao --version
+```
+
 Build and run locally:
 
 ```bash
@@ -75,7 +82,7 @@ qiao --json "How are you?"
 Show executed command and elapsed time:
 
 ```bash
-qiao -v "How are you?"
+qiao -V "How are you?"
 ```
 
 List available providers:
@@ -98,7 +105,8 @@ qiao init
 | `--to`       | `-t`  | Target language                        | `zh`                          |
 | `--provider` | `-p`  | Translation provider                   | _(configured by `qiao init`)_ |
 | `--json`     |       | Output structured JSON                 | `false`                       |
-| `--verbose`  | `-v`  | Show executed command and elapsed time | `false`                       |
+| `--version`  | `-v`  | Show qiao version                      | `false`                       |
+| `--verbose`  | `-V`  | Show executed command and elapsed time | `false`                       |
 
 ## Configuration
 
@@ -234,6 +242,13 @@ qiao upgrade
 qiao upgrade --version v0.1.0
 ```
 
+查看当前安装的 `qiao` 版本：
+
+```bash
+qiao -v
+qiao --version
+```
+
 在本地构建并运行：
 
 ```bash
@@ -280,7 +295,7 @@ qiao --json "How are you?"
 显示执行的命令和耗时：
 
 ```bash
-qiao -v "How are you?"
+qiao -V "How are you?"
 ```
 
 列出可用的 provider：
@@ -303,7 +318,8 @@ qiao init
 | `--to`       | `-t`   | 目标语言             | `zh`                      |
 | `--provider` | `-p`   | 翻译 provider        | _（由 `qiao init` 配置）_ |
 | `--json`     |        | 输出结构化 JSON      | `false`                   |
-| `--verbose`  | `-v`   | 显示执行的命令和耗时 | `false`                   |
+| `--version`  | `-v`   | 显示 qiao 版本       | `false`                   |
+| `--verbose`  | `-V`   | 显示执行的命令和耗时 | `false`                   |
 
 ## 配置
 

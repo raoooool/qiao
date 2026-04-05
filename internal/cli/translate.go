@@ -22,9 +22,15 @@ func configureTranslateCommand(cmd *cobra.Command, deps TranslateDependencies) {
 	var to string
 	var provider string
 	var jsonOutput bool
+	var showVersion bool
 	var verbose bool
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
+		if showVersion {
+			_, err := fmt.Fprintln(deps.Stdout, buildVersion)
+			return err
+		}
+
 		if len(args) == 0 && isTerminal(deps.Stdin) {
 			return cmd.Help()
 		}
@@ -115,7 +121,8 @@ func configureTranslateCommand(cmd *cobra.Command, deps TranslateDependencies) {
 	cmd.Flags().StringVarP(&to, "to", "t", "", "target language")
 	cmd.Flags().StringVarP(&provider, "provider", "p", "", "translation provider")
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "output structured JSON")
-	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "show executed command and elapsed time")
+	cmd.Flags().BoolVarP(&showVersion, "version", "v", false, "show qiao version")
+	cmd.Flags().BoolVarP(&verbose, "verbose", "V", false, "show executed command and elapsed time")
 }
 
 func resolveInput(args []string, stdin io.Reader) (string, error) {
